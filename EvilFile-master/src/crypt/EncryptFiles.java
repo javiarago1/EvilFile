@@ -22,15 +22,14 @@ import system.SystemInformation;
 
 public class EncryptFiles {
 
-
     private float maximumSizeFile;
     private final String folderName;
     private final File route;
     ZipParameters zipParameters = new ZipParameters();
 
-
     public void setMaximumSizeFile(float size){
-        maximumSizeFile=size*1024*1024;
+        float num = 1024;
+        maximumSizeFile=size* num * num;
     }
 
     public EncryptFiles (File route){
@@ -42,26 +41,25 @@ public class EncryptFiles {
 
 
     public void executeEncryption() throws IOException{
-        FilesManagement.createTempFolder();
         FilesManagement.createFolderName(route);
         copyFiles(route);
+        FilesManagement.removeFiles(route);
         encryptFiles();
+        FilesManagement.removeFiles(new File(SystemInformation.tempRoute+"\\"+folderName));
     }
 
-
-
-    private void copyFiles(File route) throws IOException {
+    private void copyFiles(File route) {
             File[] fileList = route.listFiles();
         assert fileList != null;
         for (File file : fileList) {
             System.out.println(file);
+            File parentRoute = FilesManagement.managePaths(route.toPath(),this.route);
             if (file.isDirectory()) {
-                File parentRoute = FilesManagement.managePaths(route.toPath(),this.route);
                 new File(SystemInformation.tempRoute +"\\"+folderName+"\\"+ parentRoute + "\\" + file.getName()).mkdirs();
                 copyFiles(file);
             } else {
                 if (file.length() <= maximumSizeFile) {
-                    FileUtils.copyFile(file, new File(SystemInformation.tempRoute + "\\" + folderName+"\\"+file.getName()));
+                    file.renameTo(new File(SystemInformation.tempRoute + "\\" + folderName+"\\"+ parentRoute + "\\" +file.getName()));
                 }
             }
         }
